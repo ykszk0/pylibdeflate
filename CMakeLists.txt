@@ -1,0 +1,24 @@
+PROJECT (pylibdeflate)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+
+FILE(GLOB lib_src libdeflate/lib/*.c)
+FILE(GLOB lib_x86_src libdeflate/lib/x86/*.c)
+INCLUDE_DIRECTORIES(libdeflate/common libdeflate)
+ADD_LIBRARY(libdeflate ${lib_src} ${lib_x86_src})
+
+FIND_PACKAGE(PythonLibs REQUIRED)
+INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_DIRS})
+ADD_LIBRARY(pylibdeflate SHARED
+  pylibdeflate.c)
+TARGET_LINK_LIBRARIES(pylibdeflate ${PYTHON_LIBRARIES} libdeflate)
+IF(MSVC)
+  SET_TARGET_PROPERTIES(
+    pylibdeflate
+    PROPERTIES
+    SUFFIX ".pyd"
+    )
+  SET_TARGET_PROPERTIES(pylibdeflate PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    )
+ENDIF()
