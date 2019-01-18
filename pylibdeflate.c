@@ -15,12 +15,12 @@ PyObject* zlib_compress(PyObject* self, PyObject* args)
   }
 
   size_t max_compressed_size = libdeflate_zlib_compress_bound(compressor, in_nbytes);
-  PyObject* py_bytes = PyBytes_FromStringAndSize(NULL, max_compressed_size);
+  PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, max_compressed_size);
   if (py_bytes == NULL) {
     libdeflate_free_compressor(compressor);
     return NULL;
   }
-  void *compressed_data = PyBytes_AsString(py_bytes);
+  void *compressed_data = PyByteArray_AsString(py_bytes);
   size_t compressed_size = libdeflate_zlib_compress(compressor,
     in,
     in_nbytes,
@@ -32,7 +32,7 @@ PyObject* zlib_compress(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_RuntimeError, "Bug in libdeflate_zlib_compress_bound()!");
     return NULL;
   }
-  if (_PyBytes_Resize(&py_bytes, compressed_size) == -1) {
+  if (PyByteArray_Resize(&py_bytes, compressed_size) == -1) {
     return NULL;
   }
   return py_bytes;
@@ -51,12 +51,12 @@ PyObject* zlib_decompress(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* py_bytes = PyBytes_FromStringAndSize(NULL, decompressed_size);
+  PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, decompressed_size);
   if (py_bytes == NULL) {
     libdeflate_free_decompressor(decompressor);
     return NULL;
   }
-  void *decompressed_data = PyBytes_AsString(py_bytes);
+  void *decompressed_data = PyByteArray_AsString(py_bytes);
   size_t actual_decompressed_size;
   enum libdeflate_result result = libdeflate_zlib_decompress(decompressor,
     in,
@@ -86,12 +86,12 @@ PyObject* gzip_compress(PyObject* self, PyObject* args)
   }
 
   size_t max_compressed_size = libdeflate_gzip_compress_bound(compressor, in_nbytes);
-  PyObject* py_bytes = PyBytes_FromStringAndSize(NULL, max_compressed_size);
+  PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, max_compressed_size);
   if (py_bytes == NULL) {
     libdeflate_free_compressor(compressor);
     return NULL;
   }
-  void *compressed_data = PyBytes_AsString(py_bytes);
+  void *compressed_data = PyByteArray_AsString(py_bytes);
   size_t compressed_size = libdeflate_gzip_compress(compressor,
     in,
     in_nbytes,
@@ -103,7 +103,7 @@ PyObject* gzip_compress(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_RuntimeError, "Bug in libdeflate_gzip_compress_bound()!");
     return NULL;
   }
-  if (_PyBytes_Resize(&py_bytes, compressed_size) == -1) {
+  if (PyByteArray_Resize(&py_bytes, compressed_size) == -1) {
     return NULL;
   }
   return py_bytes;
@@ -135,12 +135,12 @@ PyObject* gzip_decompress(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* py_bytes = PyBytes_FromStringAndSize(NULL, decompressed_size);
+  PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, decompressed_size);
   if (py_bytes == NULL) {
     libdeflate_free_decompressor(decompressor);
     return NULL;
   }
-  void *decompressed_data = PyBytes_AsString(py_bytes);
+  void *decompressed_data = PyByteArray_AsString(py_bytes);
   size_t actual_decompressed_size;
   enum libdeflate_result result = libdeflate_gzip_decompress(decompressor,
     in,
