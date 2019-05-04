@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <libdeflate.h>
+#include <stdio.h>
 
 PyObject* zlib_compress(PyObject* self, PyObject* args)
 {
@@ -40,9 +41,10 @@ PyObject* zlib_compress(PyObject* self, PyObject* args)
 
 PyObject* zlib_decompress(PyObject* self, PyObject* args)
 {
+  const char encoding;
   void *in;
   int in_nbytes, decompressed_size;
-  if (!PyArg_ParseTuple(args, "y#i", &in, &in_nbytes, &decompressed_size)) {
+  if (!PyArg_ParseTuple(args, "et#i", &encoding, &in, &in_nbytes, &decompressed_size)) {
     return NULL;
   }
   struct libdeflate_decompressor *decompressor = libdeflate_alloc_decompressor();
@@ -118,9 +120,10 @@ load_u32_gzip(const uint8_t *p)
 
 PyObject* gzip_decompress(PyObject* self, PyObject* args)
 {
+  const char encoding;
   void *in;
   int in_nbytes;
-  if (!PyArg_ParseTuple(args, "y#", &in, &in_nbytes)) {
+  if (!PyArg_ParseTuple(args, "et#", &encoding, &in, &in_nbytes)) {
     return NULL;
   }
   if (in_nbytes < sizeof(u32)) {
@@ -156,11 +159,51 @@ PyObject* gzip_decompress(PyObject* self, PyObject* args)
   return py_bytes;
 }
 
+PyObject* read_as_bytearray(PyObject* self, PyObject* args)
+{
+  const char* filename;
+  Py_ssize_t size, offset = 0;
+  if (!PyArg_ParseTuple(args, "sn|n", &filename, &size, &offset)) {
+    return NULL;
+  }
+
+  FILE* fp = fopen(filename, "rb");
+  if (fp == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Can't open file");
+    return NULL;
+  }
+  PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, size);
+  if (py_bytes == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Failed to allocate array");
+    fclose(fp);
+    return NULL;
+  }
+
+  if (offset > 0) {
+    if (fseek(fp, offset, SEEK_SET) != 0) {
+      PyErr_SetString(PyExc_RuntimeError, "Something went wrong during fseek");
+      fclose(fp);
+      Py_DECREF(py_bytes);
+      return NULL;
+    };
+  }
+  size_t size_read = fread(PyByteArray_AsString(py_bytes), size, 1, fp);
+  if (size_read <= 0) {
+    PyErr_SetString(PyExc_RuntimeError, "Something went wrong during fread");
+    fclose(fp);
+    Py_DECREF(py_bytes);
+    return NULL;
+  }
+  fclose(fp);
+  return py_bytes;
+}
+
 static PyMethodDef PylibdeflateMethods[] = {
   {"zlib_compress", zlib_compress, METH_VARARGS, "zlib format compression."},
   {"zlib_decompress", zlib_decompress, METH_VARARGS, "zlib format decompression."},
   {"gzip_compress", gzip_compress, METH_VARARGS, "gzip format compression."},
   {"gzip_decompress", gzip_decompress, METH_VARARGS, "gzip format decompression."},
+  {"read_as_bytearray", read_as_bytearray, METH_VARARGS, "read binary file as bytearray."},
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
@@ -177,3 +220,4 @@ PyInit_pylibdeflate(void)
 {
   return PyModule_Create(&pylibdeflate_module);
 }
+
