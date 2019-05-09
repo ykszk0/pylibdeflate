@@ -41,12 +41,13 @@ PyObject* zlib_compress(PyObject* self, PyObject* args)
 
 PyObject* zlib_decompress(PyObject* self, PyObject* args)
 {
-  const char encoding;
-  void *in;
-  int in_nbytes, decompressed_size;
-  if (!PyArg_ParseTuple(args, "et#i", &encoding, &in, &in_nbytes, &decompressed_size)) {
+  Py_buffer buffer;
+  size_t decompressed_size;
+  if (!PyArg_ParseTuple(args, "y*n", &buffer, &decompressed_size)) {
     return NULL;
   }
+  void *in = buffer.buf;
+  size_t in_nbytes = buffer.len;
   struct libdeflate_decompressor *decompressor = libdeflate_alloc_decompressor();
   if (decompressor == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "decompressor allocation failed.");
@@ -120,12 +121,12 @@ load_u32_gzip(const uint8_t *p)
 
 PyObject* gzip_decompress(PyObject* self, PyObject* args)
 {
-  const char encoding;
-  void *in;
-  int in_nbytes;
-  if (!PyArg_ParseTuple(args, "et#", &encoding, &in, &in_nbytes)) {
+  Py_buffer buffer;
+  if (!PyArg_ParseTuple(args, "y*n", &buffer)) {
     return NULL;
   }
+  void *in = buffer.buf;
+  size_t in_nbytes = buffer.len;
   if (in_nbytes < sizeof(u32)) {
     PyErr_SetString(PyExc_RuntimeError, "input is not in gzip format.");
     return NULL;
