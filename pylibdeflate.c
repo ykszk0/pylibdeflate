@@ -2,6 +2,9 @@
 #include <libdeflate.h>
 #include <stdio.h>
 
+#define STRINGIFY(n) #n
+#define TOSTRING(n) STRINGIFY(n)
+
 PyObject* zlib_compress(PyObject* self, PyObject* args)
 {
   void *in;
@@ -19,6 +22,7 @@ PyObject* zlib_compress(PyObject* self, PyObject* args)
   PyObject* py_bytes = PyBytes_FromStringAndSize(NULL, max_compressed_size);
   if (py_bytes == NULL) {
     libdeflate_free_compressor(compressor);
+    PyErr_SetString(PyExc_RuntimeError, "memory allocation failed. " TOSTRING(__LINE__) " at " __FILE__);
     return NULL;
   }
   void *compressed_data = PyBytes_AsString(py_bytes);
@@ -56,6 +60,7 @@ PyObject* zlib_decompress(PyObject* self, PyObject* args)
 
   PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, decompressed_size);
   if (py_bytes == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "memory allocation failed. " TOSTRING(__LINE__) " at " __FILE__);
     libdeflate_free_decompressor(decompressor);
     return NULL;
   }
@@ -221,4 +226,3 @@ PyInit_pylibdeflate(void)
 {
   return PyModule_Create(&pylibdeflate_module);
 }
-
