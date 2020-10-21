@@ -54,12 +54,14 @@ PyObject* zlib_decompress(PyObject* self, PyObject* args)
   size_t in_nbytes = buffer.len;
   struct libdeflate_decompressor *decompressor = libdeflate_alloc_decompressor();
   if (decompressor == NULL) {
+    PyBuffer_Release(&buffer);
     PyErr_SetString(PyExc_RuntimeError, "decompressor allocation failed.");
     return NULL;
   }
 
   PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, decompressed_size);
   if (py_bytes == NULL) {
+    PyBuffer_Release(&buffer);
     PyErr_SetString(PyExc_RuntimeError, "memory allocation failed. " TOSTRING(__LINE__) " at " __FILE__);
     libdeflate_free_decompressor(decompressor);
     return NULL;
@@ -73,10 +75,12 @@ PyObject* zlib_decompress(PyObject* self, PyObject* args)
     decompressed_size, &actual_decompressed_size);
   libdeflate_free_decompressor(decompressor);
   if (result != LIBDEFLATE_SUCCESS) {
+    PyBuffer_Release(&buffer);
     Py_DECREF(py_bytes);
     PyErr_SetString(PyExc_RuntimeError, "Corrupted file or not in zlib format");
     return NULL;
   }
+  PyBuffer_Release(&buffer);
   return py_bytes;
 }
 
@@ -133,6 +137,7 @@ PyObject* gzip_decompress(PyObject* self, PyObject* args)
   void *in = buffer.buf;
   size_t in_nbytes = buffer.len;
   if (in_nbytes < sizeof(u32)) {
+    PyBuffer_Release(&buffer);
     PyErr_SetString(PyExc_RuntimeError, "input is not in gzip format.");
     return NULL;
   }
@@ -146,6 +151,7 @@ PyObject* gzip_decompress(PyObject* self, PyObject* args)
 
   PyObject* py_bytes = PyByteArray_FromStringAndSize(NULL, decompressed_size);
   if (py_bytes == NULL) {
+    PyBuffer_Release(&buffer);
     libdeflate_free_decompressor(decompressor);
     return NULL;
   }
@@ -158,10 +164,12 @@ PyObject* gzip_decompress(PyObject* self, PyObject* args)
     decompressed_size, &actual_decompressed_size);
   libdeflate_free_decompressor(decompressor);
   if (result != LIBDEFLATE_SUCCESS) {
+    PyBuffer_Release(&buffer);
     Py_DECREF(py_bytes);
     PyErr_SetString(PyExc_RuntimeError, "Corrupted file or not in zlib format");
     return NULL;
   }
+  PyBuffer_Release(&buffer);
   return py_bytes;
 }
 
