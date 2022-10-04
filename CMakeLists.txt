@@ -5,16 +5,17 @@ IF (NOT WIN32)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 ENDIF()
 
-FILE(GLOB lib_src libdeflate/lib/*.c)
-FILE(GLOB lib_x86_src libdeflate/lib/x86/*.c)
-INCLUDE_DIRECTORIES(libdeflate/common libdeflate)
-ADD_LIBRARY(libdeflate ${lib_src} ${lib_x86_src})
+SET(LIBDEFLATE_BUILD_STATIC_LIB ON CACHE BOOL "")
+SET(LIBDEFLATE_BUILD_SHARED_LIB OFF CACHE BOOL "")
+SET(LIBDEFLATE_BUILD_GZIP OFF CACHE BOOL "")
+
+add_subdirectory(libdeflate)
 
 FIND_PACKAGE(PythonLibs REQUIRED)
 INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_DIRS})
 ADD_LIBRARY(pylibdeflate SHARED
   pylibdeflate.c)
-TARGET_LINK_LIBRARIES(pylibdeflate ${PYTHON_LIBRARIES} libdeflate)
+TARGET_LINK_LIBRARIES(pylibdeflate ${PYTHON_LIBRARIES} libdeflate_static)
 IF(MSVC)
   SET_TARGET_PROPERTIES(
     pylibdeflate
