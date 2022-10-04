@@ -8,6 +8,7 @@ import subprocess
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
+import distutils.sysconfig as sysconfig
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -45,6 +46,9 @@ class CMakeBuild(build_ext):
             if sys.maxsize > 2**32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
+        elif platform.system() == 'Darwin':
+            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
+            cmake_args += ['-DPYTHON_LIBRARY='+'{}/{}'.format(sysconfig.get_config_var('LIBDIR'),sysconfig.get_config_var('LIBRARY').replace('.a','.dylib'))]
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             build_args += ['--', '-j2']
