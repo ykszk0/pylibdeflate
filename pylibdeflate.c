@@ -7,11 +7,13 @@
 
 PyObject* zlib_compress(PyObject* self, PyObject* args)
 {
-  void *in;
-  int in_nbytes, level = 6;
-  if (!PyArg_ParseTuple(args, "y#|i", &in, &in_nbytes, &level)) {
+  Py_buffer buffer;
+  int level = 6;
+  if (!PyArg_ParseTuple(args, "y*|i", &buffer, &level)) {
     return NULL;
   }
+  void *in = buffer.buf;
+  size_t in_nbytes = buffer.len;
   struct libdeflate_compressor *compressor = libdeflate_alloc_compressor(level);
   if (compressor == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "compressor allocation failed.");
@@ -86,11 +88,13 @@ PyObject* zlib_decompress(PyObject* self, PyObject* args)
 
 PyObject* gzip_compress(PyObject* self, PyObject* args)
 {
-  void *in;
-  int in_nbytes, level = 6;
-  if (!PyArg_ParseTuple(args, "y#|i", &in, &in_nbytes, &level)) {
+  Py_buffer buffer;
+  int level = 6;
+  if (!PyArg_ParseTuple(args, "y*|i", &buffer, &level)) {
     return NULL;
   }
+  void *in = buffer.buf;
+  size_t in_nbytes = buffer.len;
   struct libdeflate_compressor *compressor = libdeflate_alloc_compressor(level);
   if (compressor == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "compressor allocation failed.");
