@@ -57,7 +57,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name='pylibdeflate',
-    version='0.2.5',
+    version='0.2.6',
     author='Yuki Suzuki',
     author_email='yuki.suzuki.h1@gmail.com',
     description='Python interface for libdeflate',
