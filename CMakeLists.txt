@@ -1,5 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
 PROJECT (pylibdeflate)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
 
 IF (NOT WIN32)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
@@ -11,13 +11,14 @@ SET(LIBDEFLATE_BUILD_GZIP OFF CACHE BOOL "")
 
 add_subdirectory(libdeflate)
 
-set (CMAKE_FIND_FRAMEWORK NEVER)
-FIND_PACKAGE(PythonLibs REQUIRED)
-INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_DIRS})
+find_package (Python COMPONENTS Interpreter Development)
+
+INCLUDE_DIRECTORIES(${Python_INCLUDE_DIRS})
 ADD_LIBRARY(pylibdeflate SHARED
   pylibdeflate.c)
-message(STATUS "foo include dir: ${PYTHON_LIBRARIES}")
-TARGET_LINK_LIBRARIES(pylibdeflate ${PYTHON_LIBRARIES} libdeflate_static)
+message(STATUS "python: ${Python_EXECUTABLE}")
+message(STATUS "python include dir: ${Python_INCLUDE_DIRS}")
+TARGET_LINK_LIBRARIES(pylibdeflate Python::Module libdeflate_static)
 IF(MSVC)
   SET_TARGET_PROPERTIES(
     pylibdeflate
